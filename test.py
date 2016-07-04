@@ -61,6 +61,101 @@ class TestLibrato(unittest.TestCase):
         self.assertTrue(urls[1].startswith(expected))
 
 
+    def test_get_metrics(self):
+        "retrieves the full list of available metrics"
+
+        urls = []
+        def urlopen(req):
+            urls.append(req.get_full_url())
+            res = {
+                "metrics": [
+                    {"name": "cpu_time", "display_name": "hello"},
+                    {"name": "cpu_idle", "display_name": "world"},
+                ]
+            }
+            return io.BytesIO(json.dumps(res))
+
+        urllib2.urlopen = urlopen
+        l = librato.Librato({
+            "user": "Aladdin", 
+            "token": "OpenSesame",
+        }, OPTIONS)
+
+        metrics = l.get_metrics()
+        self.assertEqual(metrics, ["cpu_time", "cpu_idle"])
+        self.assertEqual(urls,["https://metrics-api.librato.com/v1/metrics"])
+
+
+    def test_done(self):
+        "_read() returns None when all results where consumed"
+
+        def urlopen(req):
+            return io.BytesIO("{}")
+
+        urllib2.urlopen = urlopen
+        l = librato.Librato({
+            "user": "Aladdin", 
+            "token": "OpenSesame",
+            "metrics": [ "cpu_time", "cpu_idle" ]
+        }, OPTIONS)
+
+        self.assertIsNotNone(l.read()) # first metric
+        self.assertIsNotNone(l.read()) # second metric
+        self.assertIsNone(l.read()) # should be done by now
+
+
+    def test_pagination(self):
+        "_read() continues to read the same metric with the new start time"
+
+        times = [ 100, 200 ]
+        urls = []
+        def urlopen(req):
+            urls.append(req.get_full_url())
+            nexttime = times.pop(0) if len(times) > 0 else None
+            res = { "query": { "next_time": nexttime } }
+            return io.BytesIO(json.dumps(res))
+
+        urllib2.urlopen = urlopen
+        l = librato.Librato({
+            "user": "Aladdin", 
+            "token": "OpenSesame",
+            "metrics": [ "cpu_time" ]
+        }, OPTIONS)
+
+        self.assertIsNotNone(l.read()) # first start time
+        self.assertIsNotNone(l.read()) # 100
+        self.assertIsNotNone(l.read()) # 200; last
+        self.assertIsNone(l.read()) # done.
+
+        # urls[0] has the default start time; irrelevant for pagination
+
+        qs = parseqs(urls[1])
+        self.assertEqual(qs["start_time"], ["100"])
+
+        qs = parseqs(urls[2])
+        self.assertEqual(qs["start_time"], ["200"])
+
+
+    def test_progress(self):
+        "test that the progress notifications are fired"
+        pass
+
+
+    def test_results(self):
+        "parse results json and breakdown all measurements to a list of results"
+        def urlopen(req):
+            return io.BytesIO(json.dumps(RESULTS))
+
+        urllib2.urlopen = urlopen
+        l = librato.Librato({
+            "user": "Aladdin", 
+            "token": "OpenSesame",
+            "metrics": [ "cpu_time" ]
+        }, OPTIONS)
+        res = l.read()
+        self.assertEqual(res, EXPECTED)
+
+
     def test_request_err(self):
         "parses request errors and returns the descriptive message"
 
@@ -139,96 +234,6 @@ class TestLibrato(unittest.TestCase):
             l.read()
         except Exception, e:
             self.assertEqual(e, raised["error"])
-
-
-    def test_get_metrics(self):
-        "retrieves the full list of available metrics"
-
-        urls = []
-        def urlopen(req):
-            urls.append(req.get_full_url())
-            res = {
-                "metrics": [
-                    {"name": "cpu_time", "display_name": "hello"},
-                    {"name": "cpu_idle", "display_name": "world"},
-                ]
-            }
-            return io.BytesIO(json.dumps(res))
-
-        urllib2.urlopen = urlopen
-        l = librato.Librato({
-            "user": "Aladdin", 
-            "token": "OpenSesame",
-        }, OPTIONS)
-
-        metrics = l.get_metrics()
-        self.assertEqual(metrics, ["cpu_time", "cpu_idle"])
-        self.assertEqual(urls,["https://metrics-api.librato.com/v1/metrics"])
-
-
-    def test_done(self):
-        "_read() returns None when all results where consumed"
-
-        def urlopen(req):
-            return io.BytesIO("{}")
-
-        urllib2.urlopen = urlopen
-        l = librato.Librato({
-            "user": "Aladdin", 
-            "token": "OpenSesame",
-            "metrics": [ "cpu_time", "cpu_idle" ]
-        }, OPTIONS)
-
-        self.assertIsNotNone(l.read()) # first metric
-        self.assertIsNotNone(l.read()) # second metric
-        self.assertIsNone(l.read()) # should be done by now
-
-
-    def test_pagination(self):
-        "_read() continues to read the same metric with the new start time"
-
-        times = [ 100, 200 ]
-        urls = []
-        def urlopen(req):
-            urls.append(req.get_full_url())
-            nexttime = times.pop(0) if len(times) > 0 else None
-            res = { "query": { "next_time": nexttime } }
-            return io.BytesIO(json.dumps(res))
-
-        urllib2.urlopen = urlopen
-        l = librato.Librato({
-            "user": "Aladdin", 
-            "token": "OpenSesame",
-            "metrics": [ "cpu_time" ]
-        }, OPTIONS)
-
-        self.assertIsNotNone(l.read()) # first start time
-        self.assertIsNotNone(l.read()) # 100
-        self.assertIsNotNone(l.read()) # 200; last
-        self.assertIsNone(l.read()) # done.
-
-        # urls[0] has the default start time; irrelevant for pagination
-
-        qs = parseqs(urls[1])
-        self.assertEqual(qs["start_time"], ["100"])
-
-        qs = parseqs(urls[2])
-        self.assertEqual(qs["start_time"], ["200"])
-
-
-    def test_results(self):
-        "parse results json and breakdown all measurements to a list of results"
-        def urlopen(req):
-            return io.BytesIO(json.dumps(RESULTS))
-
-        urllib2.urlopen = urlopen
-        l = librato.Librato({
-            "user": "Aladdin", 
-            "token": "OpenSesame",
-            "metrics": [ "cpu_time" ]
-        }, OPTIONS)
-        res = l.read()
-        self.assertEqual(res, EXPECTED)
 
 
 

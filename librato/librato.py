@@ -30,6 +30,9 @@ class Librato(panoply.DataSource):
             "start": start
         }, source.get("metrics", []))
 
+        # progress counters
+        self._total = len(self._metrics)
+
 
     # returns all of the metrics available for this source
     def get_metrics(self):
@@ -72,7 +75,14 @@ class Librato(panoply.DataSource):
         if start is not None:
             metric["start"] = start
         else:
-            self._metrics.pop(0) # no more results for this metric, remove it
+
+            # no more results for this metric, remove it
+            self._metrics.pop(0)
+
+            # report the progress
+            loaded = self._total - len(self._metrics)
+            msg = "%s of %s metrics loaded" % (loaded, self._total)
+            # self.progress(loaded, self._total, msg)
         
         return results
 
