@@ -18,7 +18,7 @@ PARAMS = [
         "required": True,
         "title": "Metrics",
         "type": "list",
-        "values": lambda x: [],
+        "values": [],
         "dependencies": [ "user", "token" ]
     }
 ]
