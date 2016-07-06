@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="panoply_librato",
-    version="1.0",
+    version="1.0.1",
     description="Panoply Data Source for the Librato API",
     author="Roi Avinoam",
     author_email="roi@panoply.io",
