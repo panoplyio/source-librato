@@ -1,5 +1,7 @@
 from librato import *
 
+Stream = Librato # alias
+
 TITLE = "Librato"
 
 PARAMS = [
