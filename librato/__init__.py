@@ -20,7 +20,7 @@ PARAMS = [
         "required": True,
         "title": "Metrics",
         "type": "list",
-        "values": [],
+        "values": lambda source: Librato(source, {}).get_metrics(),
         "dependencies": [ "user", "token" ]
     }
 ]
