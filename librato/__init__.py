@@ -24,5 +24,7 @@ CONFIG = {
             "values": lambda source: Librato(source, {}).get_metrics(),
             "dependencies": [ "user", "token" ]
         }
-    ]
+    ],
+    "categories": [ "APIs" ],
+    "keywords": [ "events", "monitoring", "websites" ]
 }
