@@ -27,5 +27,5 @@ CONFIG = {
     ],
     "categories": [ "APIS" ],
     "keywords": [ "events", "monitoring", "websites" ],
-    "createdAt": '2016-07-01'
+    "createdAt": "2016-07-01"
 }
