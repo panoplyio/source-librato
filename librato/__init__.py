@@ -25,6 +25,6 @@ CONFIG = {
             "dependencies": [ "user", "token" ]
         }
     ],
-    "categories": [ "APIs" ],
+    "categories": [ "APIS" ],
     "keywords": [ "events", "monitoring", "websites" ]
 }
