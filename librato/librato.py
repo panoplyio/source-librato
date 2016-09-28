@@ -22,13 +22,15 @@ class Librato(panoply.DataSource):
         self._auth = base64.encodestring("%(user)s:%(token)s" % source).strip()
 
         # create the list of metrics along with their start timestamp
+        source_metrics = source.get("metrics", [])
+        source_metrics = source_metrics if source_metrics else []
         self._metrics = map(lambda metric: {
             "name": metric, 
 
              # the ._read() method may change that timestamp in order to 
              # paginate over the results
             "start": start
-        }, source.get("metrics", []))
+        }, source_metrics)
 
         # progress counters
         self._total = len(self._metrics)
@@ -149,6 +151,3 @@ class LibratoError(Exception):
         # no descriptive error message was extracted, just return the original
         # generic error.
         return err
-
-
-
