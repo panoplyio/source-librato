@@ -19,7 +19,7 @@ class Librato(panoply.DataSource):
         # self._url = build_url(source.get("user"), source.get("token"))
         self._meta_page = 0
         self._current_metric = 0
-        self._auth = base64.encodestring("%(user)s:%(token)s" % source).strip()
+        self._auth = base64.b64encode("%(user)s:%(token)s" % source).strip()
 
         # create the list of metrics along with their start timestamp
         source_metrics = source.get("metrics", [])
