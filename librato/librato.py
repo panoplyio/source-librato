@@ -22,7 +22,7 @@ class Librato(panoply.DataSource):
         self._auth = base64.b64encode("%(user)s:%(token)s" % source).strip()
 
         # create the list of metrics along with their start timestamp
-        source_metrics = source.get("metrics", [])
+        source_metrics = source.get("metrics", None)
         source_metrics = source_metrics if source_metrics else []
         self._metrics = map(lambda metric: {
             "name": metric, 
