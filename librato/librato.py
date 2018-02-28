@@ -10,8 +10,8 @@ DAY = 24 * 60 * MINUTE
 RESOLUTION = 5 * MINUTE
 BASE_URL = "https://metrics-api.librato.com/v1/metrics"
 
+
 class Librato(panoply.DataSource):
-    
     # constructor
     def __init__(self, source, options):
         super(Librato, self).__init__(source, options)
@@ -24,34 +24,39 @@ class Librato(panoply.DataSource):
         # create the list of metrics along with their start timestamp
         source_metrics = source.get("metrics", None)
         source_metrics = source_metrics if source_metrics else []
+        # the ._read() method may
+        # change that timestamp in
+        # order to paginate over
+        # paginate over the results
         self._metrics = map(lambda metric: {
-            "name": metric, 
-
-             # the ._read() method may change that timestamp in order to 
-             # paginate over the results
+            "name": metric,
             "start": start
         }, source_metrics)
 
         # progress counters
         self._total = len(self._metrics)
 
-
     # returns all of the metrics available for this source
     def get_metrics(self):
-        body = self._request(BASE_URL)
-        metrics = body.get("metrics", [])
-        return map(lambda metric: metric.get("name"), metrics)
-
+        try:
+            body = self._request(BASE_URL)
+            metrics = body.get("metrics", [])
+            return map(lambda metric: metric.get("name"), metrics)
+        except:
+            err_message = ('Authentication failed.'
+                           ' Please check your credentials and try again')
+            raise Exception(err_message)
 
     # reads the next batch of data
-    def read(self, n = None):
+    def read(self, n=None):
         if len(self._metrics) == 0:
-            return None # we are done here.
+            # we are done here.
+            return None
 
         # build the URL for the next metric
         metric = self._metrics[0]
         url = "%s/%s?resolution=%d&start_time=%d" % (
-            BASE_URL, 
+            BASE_URL,
             metric["name"],
             RESOLUTION,
             metric["start"]
@@ -85,7 +90,7 @@ class Librato(panoply.DataSource):
             loaded = self._total - len(self._metrics)
             msg = "%s of %s metrics loaded" % (loaded, self._total)
             # self.progress(loaded, self._total, msg)
-        
+
         return results
 
     # helper function for issuing GET requests against the Librato API
@@ -108,7 +113,7 @@ class Librato(panoply.DataSource):
 # Librato API exception class
 class LibratoError(Exception):
 
-    # unavailable time range is indicative that the requested time range 
+    # unavailable time range is indicative that the requested time range
     # contains not results
     def isEmptyTimeRange(self):
         return str(self) == "unavailable for the given time range"
@@ -116,19 +121,20 @@ class LibratoError(Exception):
     @classmethod
     def from_http_error(cls, err):
         """
-        Librato's REST API returns appropriate HTTP error codes on failure, 
+        Librato's REST API returns appropriate HTTP error codes on failure,
         which are raised as generic urllib2.HTTPError instances. These error
-        responses also contain a JSON with a descriptive explanation of the 
+        responses also contain a JSON with a descriptive explanation of the
         error, one that's more readable than the generic HTTP message like
-        "400 Bad Request". This method transforms this generic error to an 
-        instance of the LibratoError class with the descriptive message from the
-        response body
+        "400 Bad Request". This method transforms this generic error to an
+        instance of the LibratoError class with the descriptive message from
+        the response body
         """
 
         try:
             # "an HTTPError can also function as a non-exceptional file-like
             # return value" -- urllib2 docs
-            # see: https://docs.python.org/2/library/urllib2.html#urllib2.HTTPError
+            # see:
+            # https://docs.python.org/2/library/urllib2.html#urllib2.HTTPError
             body = err.read()
             parsed = json.loads(body)
             errors = parsed["errors"]
