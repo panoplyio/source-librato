@@ -28,7 +28,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time" ]
         }, OPTIONS)
@@ -47,7 +47,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time", "cpu_idle" ]
         }, OPTIONS)
@@ -77,7 +77,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
         }, OPTIONS)
 
@@ -85,6 +85,25 @@ class TestLibrato(unittest.TestCase):
         self.assertEqual(metrics, ["cpu_time", "cpu_idle"])
         self.assertEqual(urls,["https://metrics-api.librato.com/v1/metrics"])
 
+    def test_failed_authentication(self):
+        "fail to authenticate request"
+
+        urls = []
+        def urlopen(req):
+            raise Exception("fail")
+
+        urllib2.urlopen = urlopen
+        l = librato.Librato({
+            "user": "Aladdin",
+            "token": "OpenSesame",
+        }, OPTIONS)
+
+        try:
+            metrics = l.get_metrics()
+        except Exception as e:
+            err_message = ('Authentication failed.'
+                           ' Please check your credentials and try again')
+            self.assertEqual(e.args[0], err_message)
 
     def test_done(self):
         "_read() returns None when all results where consumed"
@@ -94,7 +113,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time", "cpu_idle" ]
         }, OPTIONS)
@@ -117,7 +136,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time" ]
         }, OPTIONS)
@@ -148,7 +167,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time" ]
         }, OPTIONS)
@@ -173,7 +192,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time", "cpu_idle" ]
         }, OPTIONS)
@@ -201,7 +220,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time", "cpu_idle" ]
         }, OPTIONS)
@@ -225,7 +244,7 @@ class TestLibrato(unittest.TestCase):
 
         urllib2.urlopen = urlopen
         l = librato.Librato({
-            "user": "Aladdin", 
+            "user": "Aladdin",
             "token": "OpenSesame",
             "metrics": [ "cpu_time", "cpu_idle" ]
         }, OPTIONS)
